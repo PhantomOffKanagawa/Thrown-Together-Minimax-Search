@@ -5,13 +5,13 @@ public class Point
   private final byte x, y;
 
   // # Point is just x & y coordinates
-  public Point(byte x, byte y) {
-    this.x = x;
-    this.y = y;
+  public Point(int x, int y) {
+    this.x = (byte) x;
+    this.y = (byte) y;
   }
 
-  public byte getX() { return(this.x); }
-  public byte getY() { return(this.y); }
+  public int getX() { return((int) this.x); }
+  public int getY() { return((int) this.y); }
 
   @Override
   public String toString() {
