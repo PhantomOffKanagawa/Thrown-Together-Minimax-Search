@@ -35,4 +35,8 @@ public class Board implements Iterable<Point>
   public Iterator<Point> iterator() {
     return setSquares.iterator();
   }
+
+  public boolean full() {
+    return (setSquares.size() == HEIGHT * LENGTH);
+  }
 }

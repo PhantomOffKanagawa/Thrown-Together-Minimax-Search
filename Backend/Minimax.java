@@ -17,57 +17,62 @@ public class Minimax {
         printOutMove(3, 3, 2);
     }
 
-    private static void printOutMove (int x, int y, int v) {
+    private static void printOutMove(int x, int y, int v) {
         System.out.printf("Player %s put a piece at x: %d, y: %d%n", (v == 1) ? "Player 1" : "Player 2", x, y);
     }
 
     public static int heuristic(Board board) {
-        LinkedList<Point> checkedSquares = new LinkedList<Point>();
         int score = 0;
 
-        for (Point square : board) {
-            // * If square already accounted for, skip
-            if (checkedSquares.contains(square)) continue;
+        int[][] directions = { { 1, 0 }, { 0, 1 }, { 1, 1 }, { -1, 1 } };
 
-            final int squarePlayer = board.getSquare(square.getX(), square.getY());
+        for (int dir[] : directions) {
+            LinkedList<Point> checkedSquares = new LinkedList<Point>();
+            for (Point square : board) {
+                // * If square already accounted for, skip
+                if (checkedSquares.contains(square))
+                    continue;
 
-            // * Check horizontal
-            score += checker(1, 0, board, square, squarePlayer, checkedSquares);
-            // * Check vertical
-            score += checker(0, 1, board, square, squarePlayer, checkedSquares);
-            // * Check diagonal 1
-            score += checker(1, 1, board, square, squarePlayer, checkedSquares);
-            // * Check up diagonal 2
-            score += checker(-1, 1, board, square, squarePlayer, checkedSquares);
-
+                final int squarePlayer = board.getSquare(square.getX(), square.getY());
+                int scoreInc = checker(dir[0], dir[1], board, square, squarePlayer, checkedSquares);
+                if (Math.abs(scoreInc) == 1000) return scoreInc;
+                score += scoreInc;
+            }
         }
+
+        // * If tie return 0
+        if (board.full()) return 0;
 
         return score;
     }
 
-    private static int checker(int xMult, int yMult, Board board, Point square, int playerToCheckAgainst, LinkedList<Point> checkedSquares) {
+    private static int checker(int xMult, int yMult, Board board, Point square, int playerToCheckAgainst,
+            LinkedList<Point> checkedSquares) {
         int numberInRow = 1, sidesOpen = 0;
-        for (int d = -1; d < 2; d+=2) {
+        for (int d = -1; d < 2; d += 2) {
             for (int o = 1; o <= 3; o++) {
                 int newX = square.getX() + xMult * (d * o);
                 int newY = square.getY() + yMult * (d * o);
-                
+
                 // * Check if out of bounds
-                if (newX <= 0 || newX >= board.getLength() + 1) break;
-                if (newY <= 0 || newY >= board.getHeight() + 1) break;
+                if (newX <= 0 || newX >= board.getLength() + 1)
+                    break;
+                if (newY <= 0 || newY >= board.getHeight() + 1)
+                    break;
 
                 // * Status of square being checked
                 int beingChecked = board.getSquare(newX, newY);
-                // * If same as current square, add number of pieces in a row and don't check this square in the future
+                // * If same as current square, add number of pieces in a row and don't check
+                // this square in the future
                 if (beingChecked == playerToCheckAgainst) {
                     numberInRow++;
                     checkedSquares.add(new Point(newX, newY));
-                // * If not currently any player, add one open side and end
+                    // * If not currently any player, add one open side and end
                 } else if (beingChecked == 0) {
                     sidesOpen++;
                     break;
                 } else {
-                // * If currently the other player, end
+                    // * If currently the other player, end
                     break;
                 }
             }
@@ -75,7 +80,9 @@ public class Minimax {
 
         int score = getScore(sidesOpen, numberInRow, playerToCheckAgainst);
         if (score != 0)
-        System.out.printf("While working %d, %d Mults found %d sides open, %d in a row, for player #%d at point %d, %d; w/ score %d%n", xMult, yMult, sidesOpen, numberInRow, playerToCheckAgainst, square.getX(), square.getY(), score);
+            System.out.printf(
+                    "While working %d, %d Mults found %d sides open, %d in a row, for player #%d at point %d, %d; w/ score %d%n",
+                    xMult, yMult, sidesOpen, numberInRow, playerToCheckAgainst, square.getX(), square.getY(), score);
         // System.out.printf("point %d, %d%n", square.getX(), square.getY());
 
         return getScore(sidesOpen, numberInRow, playerToCheckAgainst);
@@ -120,6 +127,5 @@ public class Minimax {
         }
         return 0;
     }
-
 
 }
