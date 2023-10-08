@@ -19,7 +19,7 @@ public class Board implements Iterable<Point>
   }
 
   private int coordinatesToIndex(int x, int y) {
-      return (x * length + y);
+      return ((x - 1) * length + (y - 1));
   }
 
   public Iterator<Point> iterator() {
