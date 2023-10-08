@@ -3,7 +3,7 @@ package Backend;
 import java.util.LinkedList;
 import java.util.Iterator;
 
-public class Board
+public class Board implements Iterable<Point>
 {
   private static final int length = 6;
   private final byte[] boardArray = new byte[30];
@@ -22,7 +22,7 @@ public class Board
       return (x * length + y);
   }
 
-  public Iterator<Point> getIterator() {
+  public Iterator<Point> iterator() {
     return setSquares.iterator();
   }
 }
