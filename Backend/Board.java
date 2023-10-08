@@ -5,8 +5,18 @@ import java.util.Iterator;
 
 public class Board implements Iterable<Point>
 {
-  private static final int length = 6;
-  private final byte[] boardArray = new byte[30];
+  public static final int HEIGHT = 5;
+  public static final int LENGTH = 6;
+
+  public static int getHeight() {
+    return HEIGHT;
+  }
+
+  public static int getLength() {
+    return LENGTH;
+  }
+
+  private final byte[] boardArray = new byte[HEIGHT * LENGTH];
   private final LinkedList<Point> setSquares = new LinkedList<Point>();
 
   public void setSquare(int x, int y, int v) {
@@ -15,11 +25,11 @@ public class Board implements Iterable<Point>
   }
 
   public int getSquare(int x, int y) {
-    return (int) boardArray[coordinatesToIndex(x, y)];
+    return boardArray[coordinatesToIndex(x, y)];
   }
 
   private int coordinatesToIndex(int x, int y) {
-      return ((x - 1) * length + (y - 1));
+      return ((x - 1) * HEIGHT + (y - 1));
   }
 
   public Iterator<Point> iterator() {

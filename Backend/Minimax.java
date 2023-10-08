@@ -4,8 +4,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Minimax {
-    static final int LENGTH = 6;
-    static final int HEIGHT = 5;
 
     Board board = new Board();
 
@@ -23,7 +21,7 @@ public class Minimax {
         System.out.printf("Player %s put a piece at x: %d, y: %d%n", (v == 1) ? "Player 1" : "Player 2", x, y);
     }
 
-    private static int heuristic(Board board) {
+    public static int heuristic(Board board) {
         LinkedList<Point> checkedSquares = new LinkedList<Point>();
         int score = 0;
 
@@ -44,7 +42,7 @@ public class Minimax {
 
         }
 
-        return -1000;
+        return score;
     }
 
     private static int checker(int xMult, int yMult, Board board, Point square, int playerToCheckAgainst, LinkedList<Point> checkedSquares) {
@@ -55,8 +53,8 @@ public class Minimax {
                 int newY = square.getY() + yMult * (d * o);
                 
                 // * Check if out of bounds
-                if (newX == 0 || newX == LENGTH) break;
-                if (newY == 0 || newY == HEIGHT) break;
+                if (newX <= 0 || newX >= board.getLength() + 1) break;
+                if (newY <= 0 || newY >= board.getHeight() + 1) break;
 
                 // * Status of square being checked
                 int beingChecked = board.getSquare(newX, newY);
@@ -75,6 +73,11 @@ public class Minimax {
             }
         }
 
+        int score = getScore(sidesOpen, numberInRow, playerToCheckAgainst);
+        if (score != 0)
+        System.out.printf("While working %d, %d Mults found %d sides open, %d in a row, for player #%d at point %d, %d; w/ score %d%n", xMult, yMult, sidesOpen, numberInRow, playerToCheckAgainst, square.getX(), square.getY(), score);
+        // System.out.printf("point %d, %d%n", square.getX(), square.getY());
+
         return getScore(sidesOpen, numberInRow, playerToCheckAgainst);
     }
 
@@ -87,7 +90,7 @@ public class Minimax {
                 } else {
                     return -80;
                 }
-            } else {
+            } else if (sidesOpen == 1) {
                 if (whichPlayer == 1) {
                     return 150;
                 } else {
@@ -101,7 +104,7 @@ public class Minimax {
                 } else {
                     return -15;
                 }
-            } else {
+            } else if (sidesOpen == 1) {
                 if (whichPlayer == 1) {
                     return 5;
                 } else {
