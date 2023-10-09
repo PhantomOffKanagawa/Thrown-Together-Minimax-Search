@@ -1,11 +1,11 @@
 package Backend;
 
 import java.text.NumberFormat;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Minimax {
 
+    // * Declare variables for keeping an active board, tracking execution time, tracking generated nodes, and tracking which player went last
     Board board;
     long time;
     long generatedNodes;
@@ -15,6 +15,7 @@ public class Minimax {
         this.board = board;
     }
 
+    // * As the first move is known... I hard coded it
     private void playerOneFirstMove() {
         board.setSquare(4, 3, 1);
         lastPlayer = 1;
@@ -22,6 +23,7 @@ public class Minimax {
         // printPage();
     }
 
+    // * As the second move is known... I also hard coded it
     private void playerTwoFirstMove() {
         board.setSquare(3, 3, 2);
         lastPlayer = 2;
@@ -29,41 +31,51 @@ public class Minimax {
         // printPage();
     }
 
+    // * Function to play out a game by switching between player choices until an end is reached
     public void playOutGame() {
+        // * Make first two moves
         playerOneFirstMove();
         playerTwoFirstMove();
 
+        // * Loop between 4 depth minimizing search and 2 depth maximizing search
         while (Math.abs(Minimax.heuristic(board)) != 1000 && !board.full()) {
             if (lastPlayer == 1) {
-                minimax(2, 0, 4);
+                minimax(2, 4);
             } else {
-                minimax(1, 0, 2);
+                minimax(1, 2);
             }
 
             printMove();
             // printPage();
 
         }
-
     }
 
-    public void minimax(int player, int depth, int limit) {
+    // * Function for generally managing a minimax search call (Can be collapsed into playOutGame())
+    public void minimax(int player, int limit) {
+        // * Reset Board and Minimax stats
         board.queuedMoves = new LinkedList<Point>();
         generatedNodes = 0;
         time = System.currentTimeMillis();
 
+        // * Choose which recursive spiral to start on
         if (player == 1) {
-            board = maximize(board, depth, limit);
+            board = maximize(board, 0, limit);
         } else {
-            board = minimize(board, depth, limit);
+            board = minimize(board, 0, limit);
         }
 
+        // * Upon completetion get the time and change the last player
         time = System.currentTimeMillis() - time;
+        // * I am proud of my one liner solution for swapping between 1 and 2
         lastPlayer = (lastPlayer % 2) + 1;
     }
 
+    // * Function for finding minimizing moves
     private Board minimize(Board board, int depth, int limit) {
+        // * Add this generated node to total
         generatedNodes++;
+        // * If at depth, terminate
         if (depth > limit)
             return board;
         depth++;
@@ -72,6 +84,7 @@ public class Minimax {
         if (Math.abs(heuristic(board)) == 1000)
             return board;
 
+        // * Loop through all potential options and then return the board with the lowest heuristic value
         Board bestBoard = board;
         int bestScore = Integer.MAX_VALUE;
         for (Point square : board.moveOptions) {
@@ -83,6 +96,7 @@ public class Minimax {
                 bestBoard = newBoard;
                 bestScore = newScore;
             } else if (newScore == bestScore) {
+                // Tie breaking handling
                 if (newBoard.queuedMoves.getLast().getX() < bestBoard.queuedMoves.getLast().getX()
                         || (newBoard.queuedMoves.getLast().getX() == bestBoard.queuedMoves.getLast().getX()
                                 && newBoard.queuedMoves.getLast().getY() < bestBoard.queuedMoves.getLast().getY())) {
@@ -95,6 +109,7 @@ public class Minimax {
         return bestBoard;
     }
 
+    // * Function for finding maximizing moves, See above, Technically can be collapsed into minimize
     private Board maximize(Board board, int depth, int limit) {
         generatedNodes++;
         if (depth > limit)
@@ -131,18 +146,24 @@ public class Minimax {
         return bestBoard;
     }
 
+    // * Function to add up the total value of a board's heuristic
     public static int heuristic(Board board) {
         int score = 0;
 
+        // * Array to represent the different direction sets by setting the xMult and yMult
         int[][] directions = { { 1, 0 }, { 0, 1 }, { 1, 1 }, { -1, 1 } };
 
+        // * Loop through all four possible directions
         for (int dir[] : directions) {
+            // * Track squares already checked for a direction
             LinkedList<Point> checkedSquares = new LinkedList<Point>();
+            // * Loop over all squares set on the board
             for (Point square : board) {
                 // * If square already accounted for, skip
                 if (checkedSquares.contains(square))
                     continue;
 
+                // * Return if it gets a win, else add the score ongoing
                 final int squarePlayer = board.getSquare(square.getX(), square.getY());
                 int scoreInc = checker(dir[0], dir[1], board, square, squarePlayer, checkedSquares);
                 if (Math.abs(scoreInc) == 1000)
@@ -158,6 +179,8 @@ public class Minimax {
         return score;
     }
 
+    // * Function to handle checking a line on a coordinate
+    // * xMult and yMult are used to control direction
     private static int checker(int xMult, int yMult, Board board, Point square, int playerToCheckAgainst,
             LinkedList<Point> checkedSquares) {
         int numberInRow = 1, sidesOpen = 0;
@@ -194,6 +217,7 @@ public class Minimax {
     }
 
     // * Overly Long but hopefully fast Scoring function
+    // * Decides what score to give a line given the relevant information
     private static int getScore(int sidesOpen, int numberInRow, int whichPlayer) {
         if (numberInRow == 3) {
             if (sidesOpen == 2) {
@@ -235,6 +259,7 @@ public class Minimax {
         return 0;
     }
 
+    // * Function to print out a move and the relevant information about it
     public void printMove() {
         Point bestMove = board.getNextQueuedMove();
         System.out.printf(
@@ -243,9 +268,10 @@ public class Minimax {
                 NumberFormat.getInstance().format(generatedNodes), ((float) time) / 1000);
     }
 
+    // * Function to print out text representative of the moves made on a board
     public void printPage() {
-        for (int y = 1; y <= board.HEIGHT; y++) {
-            for (int x = 1; x <= board.LENGTH; x++) {
+        for (int y = 1; y <= board.getHeight(); y++) {
+            for (int x = 1; x <= board.getLength(); x++) {
                 System.out.printf("|");
                 char symbol = ' ';
                 if (board.getSquare(x, y) == 1)
