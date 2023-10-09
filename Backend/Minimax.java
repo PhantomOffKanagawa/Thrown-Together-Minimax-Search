@@ -1,24 +1,134 @@
 package Backend;
 
+import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Minimax {
 
-    Board board = new Board();
+    Board board;
+    long time;
+    long generatedNodes;
+    int lastPlayer;
 
-    public static void playerOneFirstMove(Board board) {
+    public Minimax(Board board) {
+        this.board = board;
+    }
+
+    private void playerOneFirstMove() {
         board.setSquare(4, 3, 1);
-        printOutMove(4, 3, 1);
+        lastPlayer = 1;
+        printMove();
+        // printPage();
     }
 
-    public static void playerTwoFirstMove(Board board) {
+    private void playerTwoFirstMove() {
         board.setSquare(3, 3, 2);
-        printOutMove(3, 3, 2);
+        lastPlayer = 2;
+        printMove();
+        // printPage();
     }
 
-    private static void printOutMove(int x, int y, int v) {
-        System.out.printf("Player %s put a piece at x: %d, y: %d%n", (v == 1) ? "Player 1" : "Player 2", x, y);
+    public void playOutGame() {
+        playerOneFirstMove();
+        playerTwoFirstMove();
+
+        while (Math.abs(Minimax.heuristic(board)) != 1000 && !board.full()) {
+            if (lastPlayer == 1) {
+                minimax(2, 0, 4);
+            } else {
+                minimax(1, 0, 2);
+            }
+
+            printMove();
+            // printPage();
+
+        }
+
+    }
+
+    public void minimax(int player, int depth, int limit) {
+        board.queuedMoves = new LinkedList<Point>();
+        generatedNodes = 0;
+        time = System.currentTimeMillis();
+
+        if (player == 1) {
+            board = maximize(board, depth, limit);
+        } else {
+            board = minimize(board, depth, limit);
+        }
+
+        time = System.currentTimeMillis() - time;
+        lastPlayer = (lastPlayer % 2) + 1;
+    }
+
+    private Board minimize(Board board, int depth, int limit) {
+        generatedNodes++;
+        if (depth > limit)
+            return board;
+        depth++;
+
+        // * If at terminal node, terminate
+        if (Math.abs(heuristic(board)) == 1000)
+            return board;
+
+        Board bestBoard = board;
+        int bestScore = Integer.MAX_VALUE;
+        for (Point square : board.moveOptions) {
+            Board newBoard = new Board(board);
+            newBoard.setSquare(square.getX(), square.getY(), 2);
+            int newScore = heuristic(maximize(newBoard, depth, limit));
+
+            if (newScore < bestScore) {
+                bestBoard = newBoard;
+                bestScore = newScore;
+            } else if (newScore == bestScore) {
+                if (newBoard.queuedMoves.getLast().getX() < bestBoard.queuedMoves.getLast().getX()
+                        || (newBoard.queuedMoves.getLast().getX() == bestBoard.queuedMoves.getLast().getX()
+                                && newBoard.queuedMoves.getLast().getY() < bestBoard.queuedMoves.getLast().getY())) {
+                    bestBoard = newBoard;
+                    bestScore = newScore;
+                }
+            }
+        }
+
+        return bestBoard;
+    }
+
+    private Board maximize(Board board, int depth, int limit) {
+        generatedNodes++;
+        if (depth > limit)
+            return board;
+        depth++;
+
+        // * If at terminal node, terminate
+        if (Math.abs(heuristic(board)) == 1000)
+            return board;
+
+        Board bestBoard = board;
+        int bestScore = Integer.MIN_VALUE;
+        for (Point square : board.moveOptions) {
+            Board newBoard = new Board(board);
+            newBoard.setSquare(square.getX(), square.getY(), 1);
+            int newScore = heuristic(minimize(newBoard, depth, limit));
+
+            if (newScore == 1000)
+                return newBoard;
+
+            if (newScore > bestScore) {
+                bestBoard = newBoard;
+                bestScore = newScore;
+            } else if (newScore == bestScore) {
+                if (newBoard.queuedMoves.getLast().getX() < bestBoard.queuedMoves.getLast().getX()
+                        || (newBoard.queuedMoves.getLast().getX() == bestBoard.queuedMoves.getLast().getX()
+                                && newBoard.queuedMoves.getLast().getY() < bestBoard.queuedMoves.getLast().getY())) {
+                    bestBoard = newBoard;
+                    bestScore = newScore;
+                }
+            }
+        }
+
+        return bestBoard;
     }
 
     public static int heuristic(Board board) {
@@ -35,13 +145,15 @@ public class Minimax {
 
                 final int squarePlayer = board.getSquare(square.getX(), square.getY());
                 int scoreInc = checker(dir[0], dir[1], board, square, squarePlayer, checkedSquares);
-                if (Math.abs(scoreInc) == 1000) return scoreInc;
+                if (Math.abs(scoreInc) == 1000)
+                    return scoreInc;
                 score += scoreInc;
             }
         }
 
         // * If tie return 0
-        if (board.full()) return 0;
+        if (board.full())
+            return 0;
 
         return score;
     }
@@ -78,13 +190,6 @@ public class Minimax {
             }
         }
 
-        int score = getScore(sidesOpen, numberInRow, playerToCheckAgainst);
-        if (score != 0)
-            System.out.printf(
-                    "While working %d, %d Mults found %d sides open, %d in a row, for player #%d at point %d, %d; w/ score %d%n",
-                    xMult, yMult, sidesOpen, numberInRow, playerToCheckAgainst, square.getX(), square.getY(), score);
-        // System.out.printf("point %d, %d%n", square.getX(), square.getY());
-
         return getScore(sidesOpen, numberInRow, playerToCheckAgainst);
     }
 
@@ -120,12 +225,37 @@ public class Minimax {
             }
         } else if (numberInRow >= 4) {
             if (whichPlayer == 1) {
+                // System.out.println("Victory for p1 Found");
                 return 1000;
             } else {
+                // System.out.println("Victory for p2 Found");
                 return -1000;
             }
         }
         return 0;
+    }
+
+    public void printMove() {
+        Point bestMove = board.getNextQueuedMove();
+        System.out.printf(
+                "Player %d placed piece at x:%d, y:%d, score: %d. This generated %s nodes and took %.3f seconds%n",
+                lastPlayer, bestMove.getX(), bestMove.getY(), Minimax.heuristic(board),
+                NumberFormat.getInstance().format(generatedNodes), ((float) time) / 1000);
+    }
+
+    public void printPage() {
+        for (int y = 1; y <= board.HEIGHT; y++) {
+            for (int x = 1; x <= board.LENGTH; x++) {
+                System.out.printf("|");
+                char symbol = ' ';
+                if (board.getSquare(x, y) == 1)
+                    symbol = 'X';
+                else if (board.getSquare(x, y) == 2)
+                    symbol = 'O';
+                System.out.printf(" %c |", symbol);
+            }
+            System.out.println();
+        }
     }
 
 }

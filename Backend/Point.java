@@ -1,5 +1,6 @@
 package Backend;
 
+// * Basic Ordered Pair object used for tracking things on the coordinate plane
 public class Point
 {
   private final byte x, y;
