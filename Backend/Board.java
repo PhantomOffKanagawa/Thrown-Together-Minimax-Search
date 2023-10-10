@@ -25,6 +25,7 @@ public class Board implements Iterable<Point>
 
   // * Initialize Variables for the moves necessary to go to a generated board
   protected LinkedList<Point> queuedMoves;
+  public int lastPlayer;
 
   // * Initialize a new board with blank sets
   public Board () {
@@ -57,6 +58,7 @@ public class Board implements Iterable<Point>
 
     // * Add chosen square as a step to get to the board
     queuedMoves.add(new Point(x, y));
+    lastPlayer = v;
   }
 
   // * Helper function to get the next move to be taken
